@@ -1,5 +1,5 @@
 ﻿#include "../exercise.h"
-
+#include <cstring>
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
@@ -8,11 +8,14 @@ struct Tensor4D {
     T *data;
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
-        unsigned int size = 1;
+        unsigned int size = shape_[0] * shape_[1] * shape_[2] * shape_[3];
         // TODO: 填入正确的 shape 并计算 size
+        std::memcpy(shape, shape_, sizeof(shape));
+
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
+    
     ~Tensor4D() {
         delete[] data;
     }
@@ -28,6 +31,39 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        for(unsigned int d0 = 0; d0 < this->shape[0]; ++d0){
+            unsigned int idx0 = d0;
+            if(shape[0] != others.shape[0]){
+                ASSERT(others.shape[0]==1,"dim 0");
+                idx0 = 0;
+            }
+            for(unsigned int d1 = 0; d1 < this->shape[1]; ++d1){
+                unsigned int idx1 = d1;
+                if(shape[1] != others.shape[1]){
+                    ASSERT(others.shape[1]==1,"dim 1");
+                    idx1 = 0;
+                }
+                for(unsigned int d2 = 0; d2 < this->shape[2]; ++d2){
+                    unsigned int idx2 = d2;
+                    if(shape[2] != others.shape[2]){
+                        ASSERT(others.shape[2]==1,"dim 2");
+                        idx2 = 0;
+                    }
+                    for(unsigned int d3 = 0; d3 < this->shape[3]; ++d3){
+                        unsigned int idx3 = d3;
+                        if(shape[3] != others.shape[3]){
+                            ASSERT(others.shape[3]==1,"dim 3");
+                            idx3 = 0;
+                        }
+                        int idx_d = d0 * shape[1] * shape[2] * shape[3] + d1 * shape[2] * shape[3] + d2 * shape[3] + d3;
+                        int idx_s = idx0 * others.shape[1] * others.shape[2] * others.shape[3] + idx1 * others.shape[2] * others.shape[3] +
+                                   idx2 * others.shape[3] + idx3;
+                        data[idx_d] 
+                        += others.data[idx_s];
+                    }
+                }
+            }
+        }
         return *this;
     }
 };
